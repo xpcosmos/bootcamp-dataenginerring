@@ -1,0 +1,17 @@
+services:
+  postgresdb:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    volumes:
+      - ./db:/var/lib/postgresql/data:rw
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=user@default.com
+      - PGADMIN_DEFAULT_PASSWORD=user
+    ports:
+      - "8080:80"
