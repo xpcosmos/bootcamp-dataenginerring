@@ -25,4 +25,4 @@ volumes:
   vol-pgdata:
     name: vol-pgdata
   vol-pgadmin_data:
-    name: vol-pgadmin_data
+    name: vol-pgadmin_data  
