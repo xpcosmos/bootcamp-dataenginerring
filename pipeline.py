@@ -3,6 +3,13 @@ import pandas as pd
 from sqlalchemy import engine
 
 def converter_dt(data:pd.DataFrame) -> pd.DataFrame:
+    """
+    Converte as colunas `['lpep_pickup_datetime', 'lpep_dropoff_datetime']`
+    em colunas de datas
+    
+    :param data_in: Dados com colunas de datas não-convertidas
+    :return data_out: Dados com colunas de datas convertidas
+    """
     for col in columns_to_date_time:
         data[col] = pd.to_datetime(data[col])
     return data
@@ -22,8 +29,6 @@ init_df.to_sql('ny_taxi', con=engine, if_exists='replace')
 # pd.read_csv('taxi_zone_lookup.csv', nrows=10)
 df = pd.read_csv('green_tripdata_2019-10.csv', chunksize=10000, iterator=True)
 
-
-
 while True:
 
     try:
@@ -36,7 +41,7 @@ while True:
         t1 = time()
         delta_t = t1 - t0
         print(f"Chunk completa. Levou {delta_t:0.2f}s para concluir operação")
-        
+
     except StopIteration:
         print('Dados inseridos. Operação concluída')
         break
