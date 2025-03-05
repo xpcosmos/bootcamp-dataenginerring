@@ -1,14 +1,14 @@
 from time import time
+import argparse
 import pandas as pd
 from sqlalchemy import engine
-import argparse
 
 
 def converter_dt(data: pd.DataFrame, columns_to_datetime: list[str]) -> pd.DataFrame:
     """
     Converte as colunas `['lpep_pickup_datetime', 'lpep_dropoff_datetime']`
     em colunas de datas
-    
+
     :param data_in: Dados com colunas de datas não-convertidas
     :return data_out: Dados com colunas de datas convertidas
     """
@@ -20,14 +20,14 @@ def converter_dt(data: pd.DataFrame, columns_to_datetime: list[str]) -> pd.DataF
 # ['lpep_pickup_datetime', 'lpep_dropoff_datetime']
 
 
-def main(params):
-    columns_to_datetime = params.columns_to_datetime
-    user = params.user
-    password = params.password
-    host = params.host
-    port = params.port
-    db = params.db
-    filename = params.filename
+def main(params:argparse.ArgumentParser) -> None:
+    columns_to_datetime:str = params.columns_to_datetime
+    user:str = params.user
+    password:str = params.password
+    host:str = params.host
+    port:str = params.port
+    db:str = params.db
+    filename:str = params.filename
 
     con = engine.create_engine(
         f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}')
@@ -37,7 +37,6 @@ def main(params):
     init_df = converter_dt(init_df, columns_to_datetime)
     init_df.to_sql(db, con=con, if_exists='replace')
 
-    # pd.read_csv('taxi_zone_lookup.csv', nrows=10)
     df = pd.read_csv(filename,
                     chunksize=10000, iterator=True)
 
