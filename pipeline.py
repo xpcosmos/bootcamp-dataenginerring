@@ -1,8 +1,10 @@
 from time import time
 import pandas as pd
 from sqlalchemy import engine
+import argparse
 
-def converter_dt(data:pd.DataFrame) -> pd.DataFrame:
+
+def converter_dt(data: pd.DataFrame, columns_to_datetime: list[str]) -> pd.DataFrame:
     """
     Converte as colunas `['lpep_pickup_datetime', 'lpep_dropoff_datetime']`
     em colunas de datas
@@ -10,38 +12,67 @@ def converter_dt(data:pd.DataFrame) -> pd.DataFrame:
     :param data_in: Dados com colunas de datas não-convertidas
     :return data_out: Dados com colunas de datas convertidas
     """
-    for col in columns_to_date_time:
+    for col in columns_to_datetime:
         data[col] = pd.to_datetime(data[col])
     return data
 
-columns_to_date_time = [
-    'lpep_pickup_datetime', 'lpep_dropoff_datetime']
 
-engine = engine.create_engine(
-    'postgresql+psycopg2://admin:admin@host.docker.internal:5432/ny_taxi')
-engine.connect()
-
-init_df = pd.read_csv('green_tripdata_2019-10.csv', nrows=0)
-init_df = converter_dt(init_df)
-init_df.to_sql('ny_taxi', con=engine, if_exists='replace')
+# ['lpep_pickup_datetime', 'lpep_dropoff_datetime']
 
 
-# pd.read_csv('taxi_zone_lookup.csv', nrows=10)
-df = pd.read_csv('green_tripdata_2019-10.csv', chunksize=10000, iterator=True)
+def main(params):
+    columns_to_datetime = params.columns_to_datetime
+    user = params.user
+    password = params.password
+    host = params.host
+    port = params.port
+    db = params.db
+    filename = params.filename
 
-while True:
+    con = engine.create_engine(
+        f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}')
+    con.connect()
 
-    try:
-        t0 = time()
+    init_df = pd.read_csv(filename, nrows=0)
+    init_df = converter_dt(init_df, columns_to_datetime)
+    init_df.to_sql('ny_taxi', con=con, if_exists='replace')
 
-        commit_df = next(df)
-        commit_df = converter_dt(commit_df)
-        commit_df.to_sql('ny_taxi', con=engine, if_exists='append')
+    # pd.read_csv('taxi_zone_lookup.csv', nrows=10)
+    df = pd.read_csv('green_tripdata_2019-10.csv',
+                    chunksize=10000, iterator=True)
 
-        t1 = time()
-        delta_t = t1 - t0
-        print(f"Chunk completa. Levou {delta_t:0.2f}s para concluir operação")
+    while True:
 
-    except StopIteration:
-        print('Dados inseridos. Operação concluída')
-        break
+        try:
+            t0 = time()
+            commit_df = next(df)
+            commit_df = converter_dt(commit_df, columns_to_datetime)
+            commit_df.to_sql('ny_taxi', con=con, if_exists='append')
+            t1 = time()
+
+            delta_t = t1 - t0
+            print(
+                f"Chunk completa. Levou {delta_t:0.2f}s para concluir operação")
+
+        except StopIteration:
+            print('Dados inseridos. Operação concluída')
+            break
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--columns_to_datetime', '-c', type=str,
+                        help='Columns to convert to datetime', nargs='*')
+    parser.add_argument('--user', '-u', type=str,
+                        help='User of Database')
+    parser.add_argument('--password', '-k', type=str,
+                        help='Password for database')
+    parser.add_argument('--host', '-h', type=str,
+                        help='host of Database')
+    parser.add_argument('--port', '-p', type=str,
+                        help='Port of Database')
+    parser.add_argument('--db', '-d', type=str,
+                        help='Database name')
+    parser.add_argument('--filename', '-f', type=str,
+                        help='name of file')
+    main(parser.parse_args())
