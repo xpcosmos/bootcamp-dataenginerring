@@ -35,10 +35,10 @@ def main(params):
 
     init_df = pd.read_csv(filename, nrows=0)
     init_df = converter_dt(init_df, columns_to_datetime)
-    init_df.to_sql('ny_taxi', con=con, if_exists='replace')
+    init_df.to_sql(db, con=con, if_exists='replace')
 
     # pd.read_csv('taxi_zone_lookup.csv', nrows=10)
-    df = pd.read_csv('green_tripdata_2019-10.csv',
+    df = pd.read_csv(filename,
                     chunksize=10000, iterator=True)
 
     while True:
@@ -47,7 +47,7 @@ def main(params):
             t0 = time()
             commit_df = next(df)
             commit_df = converter_dt(commit_df, columns_to_datetime)
-            commit_df.to_sql('ny_taxi', con=con, if_exists='append')
+            commit_df.to_sql(db, con=con, if_exists='append')
             t1 = time()
 
             delta_t = t1 - t0
@@ -67,11 +67,11 @@ if __name__ == '__main__':
                         help='User of Database')
     parser.add_argument('--password', '-k', type=str,
                         help='Password for database')
-    parser.add_argument('--host', '-h', type=str,
+    parser.add_argument('--host', type=str,
                         help='host of Database')
     parser.add_argument('--port', '-p', type=str,
                         help='Port of Database')
-    parser.add_argument('--db', '-d', type=str,
+    parser.add_argument('--db', type=str,
                         help='Database name')
     parser.add_argument('--filename', '-f', type=str,
                         help='name of file')
