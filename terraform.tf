@@ -7,13 +7,13 @@ terraform {
 }
 
 provider "google" {
-  project = "test-dev--mikeias-d-s-o"
-  region  = "us-central1"
+  project = var.project_dev_name
+  region  = var.project_dev_region
 }
 resource "google_storage_bucket" "dev-bucket" {
-  name          = "test-dev--mikeiascamp--dev-bucket"
-  location      = "US"
-  storage_class = "STANDARD"
+  name          = var.bucket_dev_name
+  location      = var.bucket_dev_location
+  storage_class = var.bucket_dev_storage_class
   force_destroy = true
 
   lifecycle_rule {
