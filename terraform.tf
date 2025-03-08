@@ -13,6 +13,7 @@ provider "google" {
 resource "google_storage_bucket" "dev-bucket" {
   name          = "test-dev--mikeiascamp--dev-bucket"
   location      = "US"
+  storage_class = "STANDARD"
   force_destroy = true
 
   lifecycle_rule {
